@@ -1,4 +1,4 @@
-package gendata
+package gen
 
 import (
 	"crypto/rand"
@@ -12,7 +12,7 @@ import (
 	"sync"
 )
 
-func GenerateRawRecords(rawRecordsBaseFileName string, bitSize uint, numberOfRecords uint) {
+func GenerateRawRecords(rawRecordsFileName string, bitSize uint, numberOfRecords uint) {
 	if runtime.NumCPU() <= 1 {
 		panic("Requires num of cpus greater than 1")
 	}
@@ -20,7 +20,7 @@ func GenerateRawRecords(rawRecordsBaseFileName string, bitSize uint, numberOfRec
 	quotientRecordsPerRoutine := numberOfRecords / numOfRoutines
 	remainderRecordsPerRoutine := numberOfRecords - (quotientRecordsPerRoutine * numOfRoutines)
 
-	generatedRawRecords := make(chan generatedRawRecord, 8)
+	generatedRawRecords := make(chan RawRecord, 8)
 	finishedWaitGroup := new(sync.WaitGroup)
 	finishedWaitGroup.Add(int(numOfRoutines))
 
@@ -30,7 +30,6 @@ func GenerateRawRecords(rawRecordsBaseFileName string, bitSize uint, numberOfRec
 		close(generatedRawRecords)
 	}()
 
-	rawRecordsFileName := fmt.Sprintf("%v_%v_%v.csv", rawRecordsBaseFileName, bitSize, numberOfRecords)
 	rawRecordsFile, osCreateErr := os.Create(rawRecordsFileName)
 	if osCreateErr != nil {
 		panic(fmt.Sprintf("Failed to create csv file, %v\n", osCreateErr))
@@ -39,9 +38,9 @@ func GenerateRawRecords(rawRecordsBaseFileName string, bitSize uint, numberOfRec
 	defer rawRecordsFile.Close()
 
 	csvWriter := csv.NewWriter(rawRecordsFile)
-	csvWriteErr := csvWriter.Write(generatedRawRecordFieldNames())
+	csvWriteErr := csvWriter.Write(RawRecordFieldNames())
 	if csvWriteErr != nil {
-		panic(fmt.Sprintf("Failed to write csv file, %v\n", csvWriteErr))
+		panic(fmt.Sprintf("Failed to write header to csv file, %v\n", csvWriteErr))
 	}
 	// defer flush because write does not immediatly write records
 	// and the defer close will not flush before closing the file
@@ -70,21 +69,21 @@ func GenerateRawRecords(rawRecordsBaseFileName string, bitSize uint, numberOfRec
 	}
 }
 
-type generatedRawRecord struct {
+type RawRecord struct {
 	NumberN      *big.Int
 	SmallerPrime *big.Int
 	BiggerPrime  *big.Int
 }
 
-func generatedRawRecordFieldNames() []string {
+func RawRecordFieldNames() []string {
 	return []string{"NumberN", "SmallerPrime", "BiggerPrime"}
 }
 
-func (source generatedRawRecord) AsStringSlice() []string {
+func (source RawRecord) AsStringSlice() []string {
 	return []string{source.NumberN.String(), source.SmallerPrime.String(), source.BiggerPrime.String()}
 }
 
-func rawRecordGenerator(resultsChannel chan generatedRawRecord, finishedWaitGroup *sync.WaitGroup, bitSize uint, numberOfRecords uint) {
+func rawRecordGenerator(resultsChannel chan RawRecord, finishedWaitGroup *sync.WaitGroup, bitSize uint, numberOfRecords uint) {
 	var count uint
 	for count = 1; count <= numberOfRecords; count++ {
 		//Generate RSA keys
@@ -115,7 +114,7 @@ func rawRecordGenerator(resultsChannel chan generatedRawRecord, finishedWaitGrou
 			biggerPrime.Set(privateKey.Primes[0])
 		}
 
-		resultsChannel <- generatedRawRecord{
+		resultsChannel <- RawRecord{
 			NumberN:      numberN,
 			SmallerPrime: smallerPrime,
 			BiggerPrime:  biggerPrime,
