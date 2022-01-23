@@ -60,11 +60,16 @@ func GenerateRawRecords(rawRecordsFileName string, bitSize uint, numberOfRecords
 		go rawRecordGenerator(generatedRawRecords, finishedWaitGroup, bitSize, nextRecordsPerRoutine)
 	}
 
+	count := 0
 	// read generated raw records and store them on csv
 	for rawRecord := range generatedRawRecords {
+		count++
 		csvWriteErr := csvWriter.Write(rawRecord.AsStringSlice())
 		if csvWriteErr != nil {
 			panic(fmt.Sprintf("Failed to write csv file, %v\n", csvWriteErr))
+		}
+		if count%5000 == 0 {
+			fmt.Printf("wrote %v records\n", count)
 		}
 	}
 }
@@ -73,14 +78,15 @@ type RawRecord struct {
 	NumberN      *big.Int
 	SmallerPrime *big.Int
 	BiggerPrime  *big.Int
+	PrimesSum    *big.Int
 }
 
 func RawRecordFieldNames() []string {
-	return []string{"NumberN", "SmallerPrime", "BiggerPrime"}
+	return []string{"NumberN", "SmallerPrime", "BiggerPrime", "PrimesSum"}
 }
 
 func (source RawRecord) AsStringSlice() []string {
-	return []string{source.NumberN.String(), source.SmallerPrime.String(), source.BiggerPrime.String()}
+	return []string{source.NumberN.String(), source.SmallerPrime.String(), source.BiggerPrime.String(), source.PrimesSum.String()}
 }
 
 func rawRecordGenerator(resultsChannel chan RawRecord, finishedWaitGroup *sync.WaitGroup, bitSize uint, numberOfRecords uint) {
@@ -104,6 +110,7 @@ func rawRecordGenerator(resultsChannel chan RawRecord, finishedWaitGroup *sync.W
 		numberN := new(big.Int)
 		smallerPrime := new(big.Int)
 		biggerPrime := new(big.Int)
+		primesSum := new(big.Int)
 
 		numberN.Set(privateKey.N)
 		if privateKey.Primes[0].Cmp(privateKey.Primes[1]) < 0 {
@@ -113,11 +120,13 @@ func rawRecordGenerator(resultsChannel chan RawRecord, finishedWaitGroup *sync.W
 			smallerPrime.Set(privateKey.Primes[1])
 			biggerPrime.Set(privateKey.Primes[0])
 		}
+		primesSum.Add(smallerPrime, biggerPrime)
 
 		resultsChannel <- RawRecord{
 			NumberN:      numberN,
 			SmallerPrime: smallerPrime,
 			BiggerPrime:  biggerPrime,
+			PrimesSum:    primesSum,
 		}
 	}
 

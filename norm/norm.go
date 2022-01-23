@@ -34,10 +34,13 @@ func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName s
 	smallerPrimeMax := new(big.Int)
 	biggerPrimeMin := new(big.Int)
 	biggerPrimeMax := new(big.Int)
+	primesSumMin := new(big.Int)
+	primesSumMax := new(big.Int)
 
 	numberNMax.SetInt64(0)
 	smallerPrimeMax.SetInt64(0)
 	biggerPrimeMax.SetInt64(0)
+	primesSumMax.SetInt64(0)
 
 	// calculate max possible value according to bitSize
 	bitSizeAsBigInt := new(big.Int)
@@ -47,6 +50,7 @@ func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName s
 
 	smallerPrimeMin.Set(numberNMin)
 	biggerPrimeMin.Set(numberNMin)
+	primesSumMin.Set(numberNMin)
 
 	// read first record since for "increment" is executed after
 	record, err := csvReader.Read()
@@ -62,6 +66,9 @@ func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName s
 		if biggerPrimeMin.Cmp(readRawRecord.BiggerPrime) > 0 {
 			biggerPrimeMin.Set(readRawRecord.BiggerPrime)
 		}
+		if primesSumMin.Cmp(readRawRecord.PrimesSum) > 0 {
+			primesSumMin.Set(readRawRecord.PrimesSum)
+		}
 
 		if numberNMax.Cmp(readRawRecord.NumberN) < 0 {
 			numberNMax.Set(readRawRecord.NumberN)
@@ -72,16 +79,13 @@ func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName s
 		if biggerPrimeMax.Cmp(readRawRecord.BiggerPrime) < 0 {
 			biggerPrimeMax.Set(readRawRecord.BiggerPrime)
 		}
+		if primesSumMax.Cmp(readRawRecord.PrimesSum) < 0 {
+			primesSumMax.Set(readRawRecord.PrimesSum)
+		}
 	}
 	if err != nil && err != io.EOF {
 		panic(fmt.Sprintf("Failed to read %v a record, err %v", rawRecordsFileName, err))
 	}
-	// fmt.Printf("numberNMin     : %100v\n", numberNMin)
-	// fmt.Printf("numberNMax     : %100v\n", numberNMax)
-	// fmt.Printf("smallerPrimeMin: %100v\n", smallerPrimeMin)
-	// fmt.Printf("smallerPrimeMax: %100v\n", smallerPrimeMax)
-	// fmt.Printf("biggerPrimeMin : %100v\n", biggerPrimeMin)
-	// fmt.Printf("biggerPrimeMax : %100v\n", biggerPrimeMax)
 
 	// reset file handler to begin of the file
 	rawRecordsFile.Seek(0, 0)
@@ -90,18 +94,7 @@ func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName s
 		panic(fmt.Sprintf("Failed to re-read %v first record, err %v", rawRecordsFileName, err))
 	}
 
-	// convert max/mins to big float to avoid multiple conversions
-	numberNMinAsBigFloat := new(big.Float).SetInt(numberNMin)
-	numberNMaxAsBigFloat := new(big.Float).SetInt(numberNMax)
-	smallerPrimeMinAsBigFloat := new(big.Float).SetInt(smallerPrimeMin)
-	smallerPrimeMaxAsBigFloat := new(big.Float).SetInt(smallerPrimeMax)
-	biggerPrimeMinAsBigFloat := new(big.Float).SetInt(biggerPrimeMin)
-	biggerPrimeMaxAsBigFloat := new(big.Float).SetInt(biggerPrimeMax)
-
-	// TODO review this, use the same scale for both smaller and bigger prime
-	biggerPrimeMinAsBigFloat.Set(smallerPrimeMinAsBigFloat)
-	smallerPrimeMaxAsBigFloat.Set(biggerPrimeMaxAsBigFloat)
-
+	// create summary CSV file
 	{
 		// create records file
 		recordsFile, osCreateErr := os.Create(recordsFileName + "_summar.csv")
@@ -119,7 +112,9 @@ func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName s
 			"smallerPrimeMin",
 			"smallerPrimeMax",
 			"biggerPrimeMin",
-			"biggerPrimeMax"})
+			"biggerPrimeMax",
+			"primesSumMin",
+			"primesSumMax"})
 		if csvWriteErr != nil {
 			panic(fmt.Sprintf("Failed to write header to csv file, %v\n", csvWriteErr))
 		}
@@ -130,6 +125,8 @@ func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName s
 			fmt.Sprintf("%v", smallerPrimeMax),
 			fmt.Sprintf("%v", biggerPrimeMin),
 			fmt.Sprintf("%v", biggerPrimeMax),
+			fmt.Sprintf("%v", primesSumMin),
+			fmt.Sprintf("%v", primesSumMax),
 		},
 		)
 		if csvWriteErr != nil {
@@ -139,6 +136,20 @@ func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName s
 		// and the defer close will not flush before closing the file
 		defer csvWriter.Flush()
 	}
+
+	// convert max/mins to big float to avoid multiple conversions
+	numberNMinAsBigFloat := new(big.Float).SetInt(numberNMin)
+	numberNMaxAsBigFloat := new(big.Float).SetInt(numberNMax)
+	smallerPrimeMinAsBigFloat := new(big.Float).SetInt(smallerPrimeMin)
+	smallerPrimeMaxAsBigFloat := new(big.Float).SetInt(smallerPrimeMax)
+	biggerPrimeMinAsBigFloat := new(big.Float).SetInt(biggerPrimeMin)
+	biggerPrimeMaxAsBigFloat := new(big.Float).SetInt(biggerPrimeMax)
+	primesSumMinAsBigFloat := new(big.Float).SetInt(primesSumMin)
+	primesSumMaxAsBigFloat := new(big.Float).SetInt(primesSumMax)
+
+	// Shaddy normalization, using the same scale for both smaller and bigger prime
+	biggerPrimeMinAsBigFloat.Set(smallerPrimeMinAsBigFloat)
+	smallerPrimeMaxAsBigFloat.Set(biggerPrimeMaxAsBigFloat)
 
 	// create records file
 	recordsFile, osCreateErr := os.Create(recordsFileName)
@@ -169,7 +180,9 @@ func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName s
 			smallerPrimeMinAsBigFloat,
 			smallerPrimeMaxAsBigFloat,
 			biggerPrimeMinAsBigFloat,
-			biggerPrimeMaxAsBigFloat)
+			biggerPrimeMaxAsBigFloat,
+			primesSumMinAsBigFloat,
+			primesSumMaxAsBigFloat)
 
 		csvWriteErr := csvWriter.Write(normalizedRecord.AsStringSlice())
 		if csvWriteErr != nil {
@@ -182,19 +195,29 @@ type Record struct {
 	NumberN      float64
 	SmallerPrime float64
 	BiggerPrime  float64
+	PrimesSum    float64
 }
 
 func RecordFieldNames() []string {
-	return []string{"NumberN", "SmallerPrime", "BiggerPrime"}
+	return []string{"NumberN", "SmallerPrime", "BiggerPrime", "PrimesSum"}
 }
 
 func (source Record) AsStringSlice() []string {
-	return []string{fmt.Sprintf("%v", source.NumberN), fmt.Sprintf("%v", source.SmallerPrime), fmt.Sprintf("%v", source.BiggerPrime)}
+	return []string{fmt.Sprintf("%v", source.NumberN), fmt.Sprintf("%v", source.SmallerPrime), fmt.Sprintf("%v", source.BiggerPrime), fmt.Sprintf("%v", source.PrimesSum)}
 }
 
 // normalize record using min-max strategy
 // reference https://docs.microsoft.com/en-us/azure/machine-learning/studio-module-reference/normalize-data#-how-to-configure-normalize-data
-func normalizeRecord(readRawRecord gen.RawRecord, numberNMin *big.Float, numberNMax *big.Float, smallerPrimeMin *big.Float, smallerPrimeMax *big.Float, biggerPrimeMin *big.Float, biggerPrimeMax *big.Float) Record {
+func normalizeRecord(readRawRecord gen.RawRecord,
+	numberNMin *big.Float,
+	numberNMax *big.Float,
+	smallerPrimeMin *big.Float,
+	smallerPrimeMax *big.Float,
+	biggerPrimeMin *big.Float,
+	biggerPrimeMax *big.Float,
+	primesSumMin *big.Float,
+	primesSumMax *big.Float) Record {
+
 	var normalizedRecord Record
 	dividend := new(big.Float)
 	divisor := new(big.Float)
@@ -221,6 +244,13 @@ func normalizeRecord(readRawRecord gen.RawRecord, numberNMin *big.Float, numberN
 	quotient.Quo(dividend, divisor)
 	normalizedRecord.BiggerPrime, _ = quotient.Float64()
 
+	// normalize PrimesSum
+	dividend.SetInt(readRawRecord.PrimesSum)
+	dividend.Sub(dividend, primesSumMin)
+	divisor.Sub(primesSumMax, primesSumMin)
+	quotient.Quo(dividend, divisor)
+	normalizedRecord.PrimesSum, _ = quotient.Float64()
+
 	return normalizedRecord
 }
 
@@ -235,6 +265,7 @@ func convertToRawRecord(record []string) gen.RawRecord {
 	numberN := new(big.Int)
 	smallerPrime := new(big.Int)
 	biggerPrime := new(big.Int)
+	primesSum := new(big.Int)
 
 	_, numberWasSet := numberN.SetString(record[0], 10)
 	if !numberWasSet {
@@ -251,9 +282,15 @@ func convertToRawRecord(record []string) gen.RawRecord {
 		panic(fmt.Sprintf("Failed to parse a raw record number, read value as string %v", record[2]))
 	}
 
+	_, numberWasSet = primesSum.SetString(record[3], 10)
+	if !numberWasSet {
+		panic(fmt.Sprintf("Failed to parse a raw record number, read value as string %v", record[3]))
+	}
+
 	parsedRawRecord.NumberN = numberN
 	parsedRawRecord.SmallerPrime = smallerPrime
 	parsedRawRecord.BiggerPrime = biggerPrime
+	parsedRawRecord.PrimesSum = primesSum
 
 	return parsedRawRecord
 }

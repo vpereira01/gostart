@@ -6,7 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPRegressor
 
 # Load the data
-f = open("../data/records_150_64000.csv")
+f = open("../data/rawRecords_150_64000.csv")
 f.readline()  # skip the header
 data = np.loadtxt(f, delimiter=',')
 
