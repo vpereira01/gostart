@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	bitSize := uint(72)
+	bitSize := uint(64)
 	numberOfRecords := uint(256000)
 	rawRecordsFileName := fmt.Sprintf("%v_%v_%v.csv", "./data/rawRecords", bitSize, numberOfRecords)
 	recordsFileName := fmt.Sprintf("%v_%v_%v.csv", "./data/records", bitSize, numberOfRecords)
@@ -50,8 +50,7 @@ func WIP() {
 	realSum, _ := new(big.Int).SetString("7387124034", 10)
 
 	targetNumberN.SetString("3685904441445326515489", 10)
-	targetNumberNBF := new(big.Float).SetInt(targetNumberN)
-	find.FindPrimesSub(targetNumberNBF)
+	find.FindPrimesSub(targetNumberN)
 
 	return
 	primesSumEstimation := new(big.Int).SetInt64(500000)
