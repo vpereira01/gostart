@@ -56,7 +56,7 @@ func findPrimesSub(numberN *big.Float) *big.Float {
 
 	countTries := uint(0)
 	countFailedSquareEstimation := uint(0)
-	value1Mod10BigInt := new(big.Int)
+	value1Mod100BigInt := new(big.Int)
 	value1Mod9BigInt := new(big.Int)
 	for {
 		value1BigInt.Mul(startNumBigInt, startNumBigInt)       // startNum**2
@@ -65,8 +65,8 @@ func findPrimesSub(numberN *big.Float) *big.Float {
 			fmt.Printf("-")
 		} else {
 			// check if possible perfect square
-			value1Mod10BigInt.Mod(value1BigInt, hundredBigInt)
-			value1Mod10 := value1Mod10BigInt.Int64()
+			value1Mod100BigInt.Mod(value1BigInt, hundredBigInt)
+			value1Mod100 := value1Mod100BigInt.Int64()
 			value1Mod9BigInt.Mod(value1BigInt, nineBigInt)
 			value1Mod9 := value1Mod9BigInt.Int64()
 			// reference https://mathworld.wolfram.com/SquareNumber.html
@@ -74,28 +74,28 @@ func findPrimesSub(numberN *big.Float) *big.Float {
 				value1Mod9 == 4 ||
 				value1Mod9 == 7 ||
 				value1Mod9 == 0) && // digital root = 9
-				(value1Mod10 == 0 ||
-					value1Mod10 == 1 ||
-					value1Mod10 == 4 ||
-					value1Mod10 == 9 ||
-					value1Mod10 == 16 ||
-					value1Mod10 == 21 ||
-					value1Mod10 == 24 ||
-					value1Mod10 == 25 ||
-					value1Mod10 == 29 ||
-					value1Mod10 == 36 ||
-					value1Mod10 == 41 ||
-					value1Mod10 == 44 ||
-					value1Mod10 == 49 ||
-					value1Mod10 == 56 ||
-					value1Mod10 == 61 ||
-					value1Mod10 == 64 ||
-					value1Mod10 == 69 ||
-					value1Mod10 == 76 ||
-					value1Mod10 == 81 ||
-					value1Mod10 == 84 ||
-					value1Mod10 == 89 ||
-					value1Mod10 == 96) {
+				(value1Mod100 == 0 ||
+					value1Mod100 == 1 ||
+					value1Mod100 == 4 ||
+					value1Mod100 == 9 ||
+					value1Mod100 == 16 ||
+					value1Mod100 == 21 ||
+					value1Mod100 == 24 ||
+					value1Mod100 == 25 ||
+					value1Mod100 == 29 ||
+					value1Mod100 == 36 ||
+					value1Mod100 == 41 ||
+					value1Mod100 == 44 ||
+					value1Mod100 == 49 ||
+					value1Mod100 == 56 ||
+					value1Mod100 == 61 ||
+					value1Mod100 == 64 ||
+					value1Mod100 == 69 ||
+					value1Mod100 == 76 ||
+					value1Mod100 == 81 ||
+					value1Mod100 == 84 ||
+					value1Mod100 == 89 ||
+					value1Mod100 == 96) {
 				countFailedSquareEstimation++
 				value1BigFloat.SetInt(value1BigInt)
 				value1BigFloat.Sqrt(value1BigFloat) // sqrt(startNum**2 - 4*numberN)
