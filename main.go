@@ -9,7 +9,6 @@ import (
 	"sync"
 	"vscode/gostart/find"
 	"vscode/gostart/gen"
-	"vscode/gostart/gonn"
 	"vscode/gostart/norm"
 )
 
@@ -21,7 +20,6 @@ func main() {
 
 	fGenerateRawRecords := flag.Bool("gen", false, "Generate raw records")
 	fNormalizeRecords := flag.Bool("norm", false, "Normalize raw records into records")
-	fTrain := flag.Bool("train", false, "Train based on normalized record")
 	fInvTrans := flag.Bool("invTrans", false, "Do inverse transformation")
 	fWIP := flag.Bool("wip", false, "Work in progress")
 	flag.Parse()
@@ -32,8 +30,6 @@ func main() {
 		gen.GenerateRawRecords(rawRecordsFileName, bitSize, numberOfRecords)
 	} else if *fNormalizeRecords {
 		norm.NormalizeRecords(rawRecordsFileName, bitSize, recordsFileName)
-	} else if *fTrain {
-		gonn.Train(recordsFileName)
 	} else if *fInvTrans {
 		InverseTransform()
 	} else if *fWIP {
