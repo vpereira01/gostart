@@ -1,4 +1,4 @@
-package find
+package findpdiff
 
 import (
 	"fmt"
@@ -6,12 +6,48 @@ import (
 	"math/big"
 )
 
+// Tries to find prime factors using factors difference as faster auxiliary calculation
+func TryToFindPrimeFactors(targetNumberN *big.Int) TryToFindPrimeFactorsResult {
+	tryFindPrimesDiffResult := findPrimesFactorsDiff(targetNumberN)
+	if !tryFindPrimesDiffResult.wasFound {
+		return TryToFindPrimeFactorsResult{false, nil, nil}
+	}
+
+	fourTimesNumberN := new(big.Int).SetInt64(4)
+	fourTimesNumberN.Mul(fourTimesNumberN, targetNumberN)
+
+	baseValue := new(big.Int).Set(tryFindPrimesDiffResult.diffFound)
+	baseValue.Mul(baseValue, baseValue)
+	baseValue.Add(baseValue, fourTimesNumberN)
+	baseValue.Sqrt(baseValue)
+
+	result := TryToFindPrimeFactorsResult{true, new(big.Int), new(big.Int)}
+
+	two := new(big.Int).SetInt64(2)
+
+	result.smallFactor.Set(baseValue)
+	result.smallFactor.Sub(result.smallFactor, tryFindPrimesDiffResult.diffFound)
+	result.smallFactor.Div(result.smallFactor, two)
+
+	result.bigFactor.Set(baseValue)
+	result.bigFactor.Add(result.bigFactor, tryFindPrimesDiffResult.diffFound)
+	result.bigFactor.Div(result.bigFactor, two)
+
+	return result
+}
+
+type TryToFindPrimeFactorsResult struct {
+	foundFactors bool
+	smallFactor  *big.Int
+	bigFactor    *big.Int
+}
+
 // Find 2 prime factors using the primes' subtraction as a faster auxiliary calculation
 // base equations (maxima notation):
 // solve([p1*p2 = numberN, p2-p1=subEst], [p1, p2]); (only positive solutions)
 //   p1(subEst) :=  (sqrt(subEst^2  + 4*numberN) - subEst)/2;
 //   p2(subEst) :=  (sqrt(subEst^2  + 4*numberN) + subEst)/2;
-func FindPrimesSub(numberN *big.Int) *big.Int {
+func findPrimesFactorsDiff(numberN *big.Int) tryFindPrimesDiffResult {
 	// In order to avoid big float precision errors lets assume a default precision double the number n
 	//   this is required because big floats initialize a precision and if a mul() requires a bigger precision
 	//   to store its results the precision is not increased but the result is rounded to meet the precision.
@@ -65,7 +101,7 @@ func FindPrimesSub(numberN *big.Int) *big.Int {
 	fourTimesNumberNMod9 := uint(fourTimesNumberNMod9BigInt.Uint64())
 	eighteenBigInt := new(big.Int).SetInt64(18)
 
-	results := make(chan *big.Int)
+	results := make(chan tryFindPrimesDiffResult)
 	stopFlag := false
 
 	for _, startIncrement := range nineModsAndStartIncrements[fourTimesNumberNMod9] {
@@ -75,13 +111,36 @@ func FindPrimesSub(numberN *big.Int) *big.Int {
 		go tryFindPrimesSub(fourTimesNumberN, startNumAdjusted, eighteenBigInt, bigFloatsDefaultPrecision, results, &stopFlag)
 	}
 
-	result := <-results
-	stopFlag = true
-	return result
+	var finalResult tryFindPrimesDiffResult
+	// Will wait for any result, if a factor is found then stopFlag is set and waits for remaing goroutines to stop
+	for numberOfGoRoutinesRunning := len(nineModsAndStartIncrements[fourTimesNumberNMod9]); numberOfGoRoutinesRunning > 0; numberOfGoRoutinesRunning-- {
+		result := <-results
+		if result.wasFound {
+			stopFlag = true
+			finalResult = result
+		}
+	}
+	if stopFlag {
+		return finalResult
+	} else {
+		return tryFindPrimesDiffResult{false, nil}
+	}
+}
+
+type tryFindPrimesDiffResult struct {
+	wasFound  bool
+	diffFound *big.Int
 }
 
 // Tries to find primes subtraction for a given startNum and step
-func tryFindPrimesSub(fourTimesNumberN *big.Int, initialStartNum *big.Int, step *big.Int, bigFloatsPrecision uint, results chan *big.Int, stopFlag *bool) {
+func tryFindPrimesSub(
+	fourTimesNumberN *big.Int,
+	initialStartNum *big.Int,
+	step *big.Int,
+	bigFloatsPrecision uint,
+	results chan tryFindPrimesDiffResult,
+	stopFlag *bool) {
+
 	fmt.Printf("fourTimesNumberN: %v initialStartNum: %v step: %v\n", fourTimesNumberN, initialStartNum, step)
 
 	value1Mod100BigInt := new(big.Int)
@@ -125,7 +184,8 @@ func tryFindPrimesSub(fourTimesNumberN *big.Int, initialStartNum *big.Int, step 
 				subEst := new(big.Int)
 				subEstBigFloat.Int(subEst)
 				fmt.Printf("-----> subEst: %10v countSteps: %10v countPerfectSquareEstimated: %10v\n", subEst, countSteps, countPerfectSquareEstimated)
-				results <- subEst
+				results <- tryFindPrimesDiffResult{true, subEst}
+				return
 			}
 		}
 
@@ -138,9 +198,11 @@ func tryFindPrimesSub(fourTimesNumberN *big.Int, initialStartNum *big.Int, step 
 		}
 
 		if *stopFlag {
+			// fmt.Printf("stoping due stopFlag\n")
 			break
 		}
 	}
+	results <- tryFindPrimesDiffResult{false, nil}
 }
 
 // warning: changes precision

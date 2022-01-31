@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"math/big"
-	"vscode/gostart/find"
+	"vscode/gostart/findpdiff"
 	"vscode/gostart/findpsum"
 	"vscode/gostart/gen"
 	"vscode/gostart/norm"
@@ -20,7 +20,7 @@ func main() {
 	fNormalizeRecords := flag.Bool("norm", false, "Normalize raw records into records")
 	fDeNormalizeValue := flag.Bool("denorm", false, "Denormalize value")
 	fFindPrimeFactorsSum := flag.Bool("findpsum", false, "Find prime factors through their sum")
-	fWIP := flag.Bool("wip", false, "Work in progress")
+	fFindPrimeFactorsDiff := flag.Bool("findpdiff", false, "Find prime factors through their difference")
 	flag.Parse()
 
 	if flag.NFlag() != 1 {
@@ -32,18 +32,13 @@ func main() {
 	} else if *fDeNormalizeValue {
 		norm.DeNormalizeValue()
 	} else if *fFindPrimeFactorsSum {
-		targetNumberN, _ := new(big.Int).SetString("13322573880505234223", 10)
-		primesSumEstimation, _ := new(big.Int).SetString("7300114376", 10)
+		targetNumberN, _ := new(big.Int).SetString("3135626011863327378113", 10)
+		primesSumEstimation, _ := new(big.Int).SetString("112029222574", 10)
 		findpsum.TryToFindPrimeFactors(targetNumberN, primesSumEstimation)
-	} else if *fWIP {
-		WIP()
+	} else if *fFindPrimeFactorsDiff {
+		targetNumberN, _ := new(big.Int).SetString("3135626011863327378113", 10)
+		findpdiff.TryToFindPrimeFactors(targetNumberN)
 	}
 
-	// easy rsa number 10263280077814176196883978050069 ~100bits 2seconds
-}
-
-func WIP() {
-	targetNumberN, _ := new(big.Int).SetString("3685904441445326515489", 10)
-	find.FindPrimesSub(targetNumberN)
-	return
+	// easy rsa number 10263280077814176196883978050069 ~100bits 2seconds by gnu factor
 }
