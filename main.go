@@ -20,7 +20,7 @@ func main() {
 
 	fGenerateRawRecords := flag.Bool("gen", false, "Generate raw records")
 	fNormalizeRecords := flag.Bool("norm", false, "Normalize raw records into records")
-	fInvTrans := flag.Bool("invTrans", false, "Do inverse transformation")
+	fDeNormalizeValue := flag.Bool("denorm", false, "Denormalize value")
 	fWIP := flag.Bool("wip", false, "Work in progress")
 	flag.Parse()
 
@@ -30,8 +30,8 @@ func main() {
 		gen.GenerateRawRecords(rawRecordsFileName, bitSize, numberOfRecords)
 	} else if *fNormalizeRecords {
 		norm.NormalizeRecords(rawRecordsFileName, bitSize, recordsFileName)
-	} else if *fInvTrans {
-		InverseTransform()
+	} else if *fDeNormalizeValue {
+		norm.DeNormalizeValue()
 	} else if *fWIP {
 		WIP()
 	}
@@ -528,29 +528,4 @@ func WIP2(sumEst *big.Float, c1 *big.Float, numberN *big.Float) (*big.Float, err
 	squaredRoot := new(big.Float)
 	squaredRoot.Sqrt(sumToSquare)
 	return squaredRoot, nil
-}
-
-func InverseTransform() {
-	realNum, _ := new(big.Int).SetString("67551153748445296705730", 10)
-	minValue, _ := new(big.Int).SetString("56706253667142884486418", 10)
-	maxValue, _ := new(big.Int).SetString("75513164846306307011680", 10)
-
-	minValueBF := new(big.Float).SetInt(minValue)
-	maxValueBF := new(big.Float).SetInt(maxValue)
-
-	//estimatedValue, _ := new(big.Float).SetString("0.5803355925313406")
-	estimatedValue, _ := new(big.Float).SetString("0.5775671903588346")
-
-	diff := new(big.Float)
-	muldiff := new(big.Float)
-	result := new(big.Float)
-
-	diff.Sub(maxValueBF, minValueBF)
-	muldiff.Mul(estimatedValue, diff)
-	result.Add(muldiff, minValueBF)
-	resultNum := new(big.Int)
-	result.Int(resultNum)
-
-	fmt.Printf("resultNum: %v\n", resultNum)
-	fmt.Printf("resultNum: %v\n", realNum.Sub(realNum, resultNum))
 }

@@ -10,6 +10,30 @@ import (
 	"vscode/gostart/gen"
 )
 
+func DeNormalizeValue() {
+	realNum, _ := new(big.Int).SetString("67551153748445296705730", 10)
+	minValue, _ := new(big.Int).SetString("56706253667142884486418", 10)
+	maxValue, _ := new(big.Int).SetString("75513164846306307011680", 10)
+
+	minValueBF := new(big.Float).SetInt(minValue)
+	maxValueBF := new(big.Float).SetInt(maxValue)
+
+	estimatedValue, _ := new(big.Float).SetString("0.5775671903588346")
+
+	diff := new(big.Float)
+	muldiff := new(big.Float)
+	result := new(big.Float)
+
+	diff.Sub(maxValueBF, minValueBF)
+	muldiff.Mul(estimatedValue, diff)
+	result.Add(muldiff, minValueBF)
+	resultNum := new(big.Int)
+	result.Int(resultNum)
+
+	fmt.Printf("resultNum          : %30v\n", resultNum)
+	fmt.Printf("realNum - resultNum: %30v\n", realNum.Sub(realNum, resultNum))
+}
+
 func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName string) {
 	rawRecordsFile, osOpenErr := os.Open(rawRecordsFileName)
 	if osOpenErr != nil {
