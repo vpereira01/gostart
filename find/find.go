@@ -24,9 +24,9 @@ func findPrimesSub(numberN *big.Float) *big.Float {
 	//   to store its results the precision is not increase but the result is rounded to meet the precision
 	bigFloatsDefaultPrecision := numberN.Prec() * 2
 
-	twoBigFloat := new(big.Float).SetInt64(2)
 	twoBigInt := new(big.Int).SetInt64(2)
 	hundredBigInt := new(big.Int).SetInt64(100)
+	nineBigInt := new(big.Int).SetInt64(9)
 	// fourBigFloat := new(big.Float).SetInt64(4)
 	// fourBigInt := new(big.Int).SetInt64(4)
 	// we want to find perfect squares made by 4*numberN + subEst^2
@@ -56,48 +56,46 @@ func findPrimesSub(numberN *big.Float) *big.Float {
 
 	countTries := uint(0)
 	countFailedSquareEstimation := uint(0)
+	value1Mod10BigInt := new(big.Int)
+	value1Mod9BigInt := new(big.Int)
 	for {
-		// value1BigFloat.Mul(startNumBigFloat, startNumBigFloat)       // startNum**2
-		value1BigInt.Mul(startNumBigInt, startNumBigInt) // startNum**2
-		// value1BigFloat.Sub(value1BigFloat, fourTimesNumberNBigFloat) // startNum**2 - 4*numberN
+		value1BigInt.Mul(startNumBigInt, startNumBigInt)       // startNum**2
 		value1BigInt.Sub(value1BigInt, fourTimesNumberNBigInt) // startNum**2 - 4*numberN
-		// if the value is negative, skip the sqrt() and value check
 		if value1BigInt.Sign() == -1 {
 			fmt.Printf("-")
 		} else {
 			// check if possible perfect square
-			// value1DivByFour := new(big.Float)
-			// value1DivByFour.Quo(value1BigFloat, fourBigFloat)
-			// value1ModByFour := new(big.Int)
-			// value1ModByFour.Mod(value1BigInt, fourBigInt)
-			// if value1DivByFour.IsInt() {
-			// if value1ModByFour.Int64() == 0 {
-			value1Mod10BigInt := new(big.Int)
 			value1Mod10BigInt.Mod(value1BigInt, hundredBigInt)
 			value1Mod10 := value1Mod10BigInt.Int64()
-			// , , , , , , , , , , , , , , , , , , ,
-			if value1Mod10 == 0 ||
-				value1Mod10 == 1 ||
-				value1Mod10 == 4 ||
-				value1Mod10 == 9 ||
-				value1Mod10 == 16 ||
-				value1Mod10 == 21 ||
-				value1Mod10 == 24 ||
-				value1Mod10 == 25 ||
-				value1Mod10 == 29 ||
-				value1Mod10 == 36 ||
-				value1Mod10 == 41 ||
-				value1Mod10 == 44 ||
-				value1Mod10 == 49 ||
-				value1Mod10 == 56 ||
-				value1Mod10 == 61 ||
-				value1Mod10 == 64 ||
-				value1Mod10 == 69 ||
-				value1Mod10 == 76 ||
-				value1Mod10 == 81 ||
-				value1Mod10 == 84 ||
-				value1Mod10 == 89 ||
-				value1Mod10 == 96 {
+			value1Mod9BigInt.Mod(value1BigInt, nineBigInt)
+			value1Mod9 := value1Mod9BigInt.Int64()
+			// reference https://mathworld.wolfram.com/SquareNumber.html
+			if (value1Mod9 == 1 ||
+				value1Mod9 == 4 ||
+				value1Mod9 == 7 ||
+				value1Mod9 == 0) && // digital root = 9
+				(value1Mod10 == 0 ||
+					value1Mod10 == 1 ||
+					value1Mod10 == 4 ||
+					value1Mod10 == 9 ||
+					value1Mod10 == 16 ||
+					value1Mod10 == 21 ||
+					value1Mod10 == 24 ||
+					value1Mod10 == 25 ||
+					value1Mod10 == 29 ||
+					value1Mod10 == 36 ||
+					value1Mod10 == 41 ||
+					value1Mod10 == 44 ||
+					value1Mod10 == 49 ||
+					value1Mod10 == 56 ||
+					value1Mod10 == 61 ||
+					value1Mod10 == 64 ||
+					value1Mod10 == 69 ||
+					value1Mod10 == 76 ||
+					value1Mod10 == 81 ||
+					value1Mod10 == 84 ||
+					value1Mod10 == 89 ||
+					value1Mod10 == 96) {
 				countFailedSquareEstimation++
 				value1BigFloat.SetInt(value1BigInt)
 				value1BigFloat.Sqrt(value1BigFloat) // sqrt(startNum**2 - 4*numberN)
@@ -110,17 +108,10 @@ func findPrimesSub(numberN *big.Float) *big.Float {
 			}
 		}
 
-		// DEBUG
-		if value1BigFloat.Cmp(stopValueBigFloat) > 0 {
-			panic("failed to find value")
-		}
-
 		countTries++
-		startNumBigFloat.Add(startNumBigFloat, twoBigFloat)
 		startNumBigInt.Add(startNumBigInt, twoBigInt)
 		if countTries%500000 == 0 {
 			fmt.Printf("*")
-			// fmt.Printf("value1: %f\n", value1)
 		}
 	}
 }

@@ -49,7 +49,7 @@ func WIP() {
 	targetNumberN, _ := new(big.Int).SetString("13438310478517603073", 10)
 	realSum, _ := new(big.Int).SetString("7387124034", 10)
 
-	targetNumberN.SetString("13322573880505234223", 10)
+	targetNumberN.SetString("13940064823464665839", 10)
 	find.FindPrimesSub(targetNumberN)
 
 	return
