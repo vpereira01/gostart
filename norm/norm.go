@@ -98,6 +98,48 @@ func NormalizeRecords(rawRecordsFileName string, bitSize uint, recordsFileName s
 	biggerPrimeMinAsBigFloat := new(big.Float).SetInt(biggerPrimeMin)
 	biggerPrimeMaxAsBigFloat := new(big.Float).SetInt(biggerPrimeMax)
 
+	// TODO review this, use the same scale for both smaller and bigger prime
+	biggerPrimeMinAsBigFloat.Set(smallerPrimeMinAsBigFloat)
+	smallerPrimeMaxAsBigFloat.Set(biggerPrimeMaxAsBigFloat)
+
+	{
+		// create records file
+		recordsFile, osCreateErr := os.Create(recordsFileName + "_summar.csv")
+		if osCreateErr != nil {
+			panic(fmt.Sprintf("Failed to create csv file, %v\n", osCreateErr))
+		}
+		// defer file close so the file is always closed
+		defer recordsFile.Close()
+
+		// write header
+		csvWriter := csv.NewWriter(recordsFile)
+		csvWriteErr := csvWriter.Write([]string{
+			"numberNMin",
+			"numberNMax",
+			"smallerPrimeMin",
+			"smallerPrimeMax",
+			"biggerPrimeMin",
+			"biggerPrimeMax"})
+		if csvWriteErr != nil {
+			panic(fmt.Sprintf("Failed to write header to csv file, %v\n", csvWriteErr))
+		}
+		csvWriteErr = csvWriter.Write([]string{
+			fmt.Sprintf("%v", numberNMin),
+			fmt.Sprintf("%v", numberNMax),
+			fmt.Sprintf("%v", smallerPrimeMin),
+			fmt.Sprintf("%v", smallerPrimeMax),
+			fmt.Sprintf("%v", biggerPrimeMin),
+			fmt.Sprintf("%v", biggerPrimeMax),
+		},
+		)
+		if csvWriteErr != nil {
+			panic(fmt.Sprintf("Failed to write header to csv file, %v\n", csvWriteErr))
+		}
+		// defer flush because write does not immediatly write records
+		// and the defer close will not flush before closing the file
+		defer csvWriter.Flush()
+	}
+
 	// create records file
 	recordsFile, osCreateErr := os.Create(recordsFileName)
 	if osCreateErr != nil {
