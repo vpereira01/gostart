@@ -1,4 +1,6 @@
 # Generated with https://www.richie-bendall.ml/gitattributes-generator/
+# With adjustments for jupyter notebook clean up
+# 
 # Common settings that generally should always be used with your language specific settings
 
 # Auto detect text files and perform LF normalization
@@ -111,7 +113,7 @@
 *.pyd    binary
 
 # Jupyter notebook
-*.ipynb  text
+*.ipynb  text filter=strip-notebook-output
 
 # Note: .db, .p, and .pkl files are associated
 # with the python modules ``pickle``, ``dbm.*``,

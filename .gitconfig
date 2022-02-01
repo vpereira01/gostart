@@ -1,0 +1,8 @@
+# Git config to clean jupyter notebooks of their output before commiting into the repository.
+# Needs to be added to local repo by running
+# git config --local include.path ../.gitconfig
+# Warning: since this manipulates an command execution on forks/clones this could be used as an attack vector.
+#
+# .gitattributes needs to also have *.ipynb filter=strip-notebook-output
+[filter "strip-notebook-output"]
+    clean = "jupyter nbconvert --ClearOutputPreprocessor.enabled=True --to=notebook --stdin --stdout --log-level=INFO"
