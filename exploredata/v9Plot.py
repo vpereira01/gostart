@@ -1,4 +1,5 @@
 
+# Plot local difference minimums
 
 import sys
 from typing import NamedTuple

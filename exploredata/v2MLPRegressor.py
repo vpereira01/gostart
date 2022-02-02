@@ -7,7 +7,7 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import GridSearchCV
 
 # Load the data
-f = open("../data/records_64_1024000.csv")
+f = open("../data/records_64_256000.csv")
 f.readline()  # skip the header
 data = np.loadtxt(f, delimiter=',')
 

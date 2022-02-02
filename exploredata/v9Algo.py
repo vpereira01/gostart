@@ -1,3 +1,5 @@
+# Evaluate trying to determine all local difference minimums
+
 import matplotlib.pyplot as plt
 import numpy as np
 import math

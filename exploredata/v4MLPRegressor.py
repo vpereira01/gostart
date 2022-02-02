@@ -35,7 +35,7 @@ rawY = data[:, 1:]
 # interesting, convergence stopped so it could go on
 X_train, X_test, y_train, y_test = train_test_split(rawX, rawY)
 transformer = MaxAbsScaler()
-regressor = MLPRegressor(max_iter=2000)
+regressor = MLPRegressor()
 pipeline = make_pipeline(transformer, regressor)
 pipeline.fit(X_train, y_train)
 print('R2 score: {0:.2f}'.format(pipeline.score(X_test, y_test)))

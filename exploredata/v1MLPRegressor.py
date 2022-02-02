@@ -7,7 +7,7 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import GridSearchCV
 
 # Load the data
-f = open("../data/records_150_64000.csv")
+f = open("../data/records_150_256000.csv")
 f.readline()  # skip the header
 data = np.loadtxt(f, delimiter=',')
 
@@ -18,7 +18,7 @@ data = np.loadtxt(f, delimiter=',')
 #     solver='lbfgs', 
 #     alpha=0.0001, 
 #     learning_rate='constant',
-#     max_iter=256) # optimized by HalvingRandomSearchCV, sucks, score 0.7902543191247206
+#     max_iter=256) # optimized by HalvingRandomSearchCV, not good, score 0.7902543191247206
 regressor = MLPRegressor(
     hidden_layer_sizes=(128,32,32,64,32), 
     # activation='relu', 

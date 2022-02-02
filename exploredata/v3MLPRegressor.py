@@ -11,14 +11,6 @@ f = open("../data/records_150_64000.csv")
 f.readline()  # skip the header
 data = np.loadtxt(f, delimiter=',')
 
-# regressor = MLPRegressor() # default regressor
-# regressor = MLPRegressor(
-#     hidden_layer_sizes=(512, 256, 128, 64, 32, 16), 
-#     activation='relu', 
-#     solver='lbfgs', 
-#     alpha=0.0001, 
-#     learning_rate='constant',
-#     max_iter=256) # optimized by HalvingRandomSearchCV, sucks, score 0.7902543191247206
 regressor = MLPRegressor(
     hidden_layer_sizes=(16384)
     #,n_iter_no_change=32
